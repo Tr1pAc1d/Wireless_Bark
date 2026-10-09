@@ -19,6 +19,16 @@ data class EngineStats(
 
 object NativeEngine {
     init {
+        try {
+            System.loadLibrary("c++_shared")
+        } catch (_: Throwable) {
+            // May already be loaded by Android runtime
+        }
+        try {
+            System.loadLibrary("oboe")
+        } catch (_: Throwable) {
+            // Will fallback to dynamic linker resolution
+        }
         System.loadLibrary("audiobridge_native")
     }
 

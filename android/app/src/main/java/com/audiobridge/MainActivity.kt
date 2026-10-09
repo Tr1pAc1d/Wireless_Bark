@@ -20,7 +20,7 @@ import com.audiobridge.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
 
-    private var streamService: StreamService? = null
+    private var streamService by mutableStateOf<StreamService?>(null)
     private var isBound = false
     private lateinit var discoveryListener: DiscoveryListener
     private val discoveredPcsState = mutableStateListOf<DiscoveredPc>()
@@ -62,9 +62,9 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 Surface {
                     val service = streamService
-                    val isStreaming by service?.isStreaming?.collectAsState() ?: remember { mutableStateOf(false) }
-                    val connectedHost by service?.connectedHost?.collectAsState() ?: remember { mutableStateOf(null) }
-                    val stats by service?.stats?.collectAsState() ?: remember { mutableStateOf(EngineStats()) }
+                    val isStreaming = service?.isStreaming?.collectAsState()?.value ?: false
+                    val connectedHost = service?.connectedHost?.collectAsState()?.value
+                    val stats = service?.stats?.collectAsState()?.value ?: EngineStats()
 
                     MainScreen(
                         isStreaming = isStreaming,
