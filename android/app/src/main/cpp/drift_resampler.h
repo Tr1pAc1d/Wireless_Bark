@@ -22,7 +22,7 @@ public:
     }
 
     void setTargetMs(float targetMs) {
-        mTargetMs = std::max(5.0f, std::min(100.0f, targetMs));
+        mTargetMs = std::max(2.0f, std::min(100.0f, targetMs));
     }
 
     float getDriftPpm() const {

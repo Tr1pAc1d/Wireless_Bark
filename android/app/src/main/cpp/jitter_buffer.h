@@ -28,7 +28,7 @@ public:
     }
 
     void setTargetMs(float ms) {
-        mTargetMs.store(std::max(5.0f, std::min(100.0f, ms)), std::memory_order_relaxed);
+        mTargetMs.store(std::max(2.0f, std::min(100.0f, ms)), std::memory_order_relaxed);
     }
 
     void pushPacket(uint64_t sampleIndex, const int16_t* pcm, size_t frames, uint32_t sampleRate) {
@@ -70,7 +70,7 @@ public:
             readIdx = mReadFrameIndex.load(std::memory_order_relaxed);
             uint64_t buffered = (writeHead > readIdx) ? (writeHead - readIdx) : 0;
             uint64_t targetFrames = static_cast<uint64_t>((mSampleRate * mTargetMs.load(std::memory_order_relaxed)) / 1000.0f);
-            if (targetFrames < 240) targetFrames = 240;
+            if (targetFrames < 110) targetFrames = 110;
             if (buffered >= targetFrames) {
                 mPrebuffering.store(false, std::memory_order_release);
             }

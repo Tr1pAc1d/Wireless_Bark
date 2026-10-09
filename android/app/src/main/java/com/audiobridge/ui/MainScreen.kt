@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import android.content.Context
+import kotlin.math.roundToInt
 import com.audiobridge.DiscoveredPc
 import com.audiobridge.EngineStats
 
@@ -29,9 +32,18 @@ fun MainScreen(
     onDisconnect: () -> Unit,
     onTargetMsChanged: (Float) -> Unit
 ) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("audiobridge_settings", Context.MODE_PRIVATE) }
     var isUsbMode by remember { mutableStateOf(false) }
     var manualIp by remember { mutableStateOf("") }
-    var targetMs by remember { mutableStateOf(15f) }
+    var targetMs by remember { mutableStateOf(prefs.getFloat("target_ms", 10f)) }
+
+    fun setAndPersistTargetMs(newMs: Float) {
+        val clamped = (newMs.roundToInt()).toFloat().coerceIn(3f, 60f)
+        targetMs = clamped
+        prefs.edit().putFloat("target_ms", clamped).apply()
+        onTargetMsChanged(clamped)
+    }
 
     Scaffold(
         topBar = {
@@ -207,26 +219,62 @@ fun MainScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Jitter Buffer Target", fontWeight = FontWeight.SemiBold)
-                        Text("${targetMs.toInt()} ms", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text("Latency & Lip-Sync Buffer", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Text(
+                                "${targetMs.toInt()} ms",
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                fontSize = 14.sp
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        "For watching videos (YouTube, Movies), use 5ms or 10ms for instant lip-sync. Increase if you hear pops or crackles on noisy Wi-Fi.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(
+                            5f to "⚡ 5ms (Lipsync)",
+                            10f to "🎯 10ms (Fast)",
+                            15f to "⚖️ 15ms (Default)",
+                            25f to "🛡️ 25ms (Stable)"
+                        ).forEach { (preset, label) ->
+                            FilterChip(
+                                selected = (targetMs.toInt() == preset.toInt()),
+                                onClick = { setAndPersistTargetMs(preset) },
+                                label = { Text(label, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
                     Slider(
                         value = targetMs,
-                        onValueChange = {
-                            targetMs = it
-                            onTargetMsChanged(it)
-                        },
-                        valueRange = 5f..60f,
-                        steps = 10
+                        onValueChange = { setAndPersistTargetMs(it) },
+                        valueRange = 3f..60f
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Lowest Latency (5ms)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("Most Stable (60ms)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Ultra-Low / Zero Delay (3ms)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Stable (60ms)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
