@@ -2,7 +2,6 @@
 [Bb]in/
 [Oo]bj/
 publish/
-release/
 *.user
 *.suo
 .vs/

@@ -35,19 +35,21 @@
 
 ### 🖥️ STEP 1: Get the Windows Suite (On Your PC)
 
-| Package | File Link | Size | Description |
+| Package | Direct Download Link | Size | Description |
 | :--- | :--- | :--- | :--- |
-| **Windows 11 / 10 Installer** (Recommended) | **[`WirelessBark-Setup.exe`](release/WirelessBark-Setup.exe)** | ~12.2 MB | Traditional Windows Install Wizard. Bundles the app, Terms of Service, desktop shortcuts, and silent VB-CABLE driver auto-install. |
-| **Windows Portable Executable** | **`windows/publish/WirelessBark.exe`** | ~1.4 MB | Standalone portable executable. Runs directly into your system tray with zero installation required. |
+| **Windows 11 / 10 Installer** (Recommended) | **[📥 WirelessBark-Setup.exe](https://github.com/Tr1pAc1d/Wireless_Bark/releases/download/v1.0.0/WirelessBark-Setup.exe)** | ~12.2 MB | Traditional Windows Install Wizard. Bundles the app, Terms of Service, desktop shortcuts, and silent VB-CABLE driver auto-install. |
+| **Windows Portable (No Install)** | **[📥 WirelessBark-Portable.zip](https://github.com/Tr1pAc1d/Wireless_Bark/releases/download/v1.0.0/WirelessBark-Portable.zip)** | ~4.5 MB | Standalone portable bundle. Runs directly into your system tray with zero install. |
 
 ---
 
 ### 📱 STEP 2: Get the Android Client (On Your Phone / Tablet)
 
-| Package | File Link | Size | Description |
+| Package | Direct Download Link | Size | Description |
 | :--- | :--- | :--- | :--- |
-| **Android APK** (Standard) | **[`WirelessBark.apk`](release/WirelessBark.apk)** | ~26.5 MB | Full Android client featuring Jetpack Compose UI and native C++ Oboe/AAudio low-latency engine. |
-| **1-Click ADB Phone Installer** | **[`install-to-phone.bat`](release/install-to-phone.bat)** | ~1 KB | Automated batch script that detects your plugged-in USB phone via ADB and installs the APK in one click. |
+| **Android APK** (Standard) | **[📥 WirelessBark.apk](https://github.com/Tr1pAc1d/Wireless_Bark/releases/download/v1.0.0/WirelessBark.apk)** | ~26.5 MB | Full Android client featuring Jetpack Compose UI and native C++ Oboe/AAudio low-latency engine. |
+| **1-Click ADB Phone Installer** | **[📥 install-to-phone.bat](https://github.com/Tr1pAc1d/Wireless_Bark/releases/download/v1.0.0/install-to-phone.bat)** | ~1 KB | Automated batch script that detects your plugged-in USB phone via ADB and installs the APK in one click. |
+
+> 🏷️ All release binaries, source archives, and checksums are also hosted on the official **[GitHub Releases Page](https://github.com/Tr1pAc1d/Wireless_Bark/releases)**.
 
 ---
 
