@@ -154,6 +154,19 @@ void Receiver::udpLoop() {
             uint8_t ch = std::max<uint8_t>(1, mChannels.load(std::memory_order_relaxed));
             size_t frames = pcmBytes / (ch * sizeof(int16_t));
             const int16_t* pcm = reinterpret_cast<const int16_t*>(rxBuf + WIRE_HEADER_SIZE);
+
+            if (frames == 220 || frames == 441) {
+                if (mSampleRate.load(std::memory_order_relaxed) != 44100) {
+                    mSampleRate.store(44100, std::memory_order_relaxed);
+                    if (mOnFormat) mOnFormat(44100, ch, static_cast<uint16_t>(frames));
+                }
+            } else if (frames == 240 || frames == 480) {
+                if (mSampleRate.load(std::memory_order_relaxed) != 48000) {
+                    mSampleRate.store(48000, std::memory_order_relaxed);
+                    if (mOnFormat) mOnFormat(48000, ch, static_cast<uint16_t>(frames));
+                }
+            }
+
             mJitter.pushPacket(inHdr->value, pcm, frames, mSampleRate.load(std::memory_order_relaxed));
         } else if (inHdr->type == MessageType::Format) {
             if (n >= static_cast<ssize_t>(WIRE_HEADER_SIZE + sizeof(FormatPayload))) {
@@ -239,6 +252,19 @@ void Receiver::tcpLoop() {
             uint8_t ch = std::max<uint8_t>(1, mChannels.load(std::memory_order_relaxed));
             size_t frames = pcmBytes / (ch * sizeof(int16_t));
             const int16_t* pcm = reinterpret_cast<const int16_t*>(rxBuf + WIRE_HEADER_SIZE);
+
+            if (frames == 220 || frames == 441) {
+                if (mSampleRate.load(std::memory_order_relaxed) != 44100) {
+                    mSampleRate.store(44100, std::memory_order_relaxed);
+                    if (mOnFormat) mOnFormat(44100, ch, static_cast<uint16_t>(frames));
+                }
+            } else if (frames == 240 || frames == 480) {
+                if (mSampleRate.load(std::memory_order_relaxed) != 48000) {
+                    mSampleRate.store(48000, std::memory_order_relaxed);
+                    if (mOnFormat) mOnFormat(48000, ch, static_cast<uint16_t>(frames));
+                }
+            }
+
             mJitter.pushPacket(inHdr->value, pcm, frames, mSampleRate.load(std::memory_order_relaxed));
         } else if (inHdr->type == MessageType::Format) {
             if (msgLen >= WIRE_HEADER_SIZE + sizeof(FormatPayload)) {

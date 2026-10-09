@@ -26,14 +26,17 @@ bool AudioEngine::start(const std::string& host, int port, NetworkMode mode, con
     mJitter.reset();
     mResampler.reset();
 
-    // Open default 48kHz stream first
-    openStream(48000);
+    // Open low-latency stream at device native sample rate
+    if (!openStream()) {
+        LOGE("Failed to open audio stream in start()");
+        return false;
+    }
 
     // Start receiver
     mReceiver->start(mHost, mPort, mMode, mDeviceName, [this](uint32_t sampleRate, uint8_t /*channels*/, uint16_t /*fpp*/) {
         LOGI("Received FORMAT callback from PC: rate=%u", sampleRate);
-        if (mSampleRate.load() != sampleRate || !mStreamOpen.load()) {
-            openStream(sampleRate);
+        if (sampleRate > 0) {
+            mSampleRate.store(sampleRate, std::memory_order_relaxed);
         }
     });
 
@@ -72,24 +75,23 @@ ReceiverStats AudioEngine::getStats() {
     return st;
 }
 
-bool AudioEngine::openStream(uint32_t sampleRate) {
+bool AudioEngine::openStream() {
     std::lock_guard<std::mutex> lock(mStreamMutex);
 
-    if (mStream && mStreamOpen.load() && mSampleRate.load() == sampleRate) {
-        LOGI("Audio stream already open at %u Hz, skipping reopen", sampleRate);
+    if (mStream && mStreamOpen.load()) {
+        LOGI("Audio stream already open, skipping reopen");
         return true;
     }
 
     closeStreamLocked();
 
-    mSampleRate.store(sampleRate);
     oboe::AudioStreamBuilder builder;
     builder.setDirection(oboe::Direction::Output)
            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
            ->setSharingMode(oboe::SharingMode::Exclusive)
            ->setFormat(oboe::AudioFormat::Float)
            ->setChannelCount(oboe::ChannelCount::Stereo)
-           ->setSampleRate(static_cast<int32_t>(sampleRate))
+           ->setSampleRate(oboe::kUnspecified)
            ->setDataCallback(this)
            ->setErrorCallback(this);
 
@@ -103,6 +105,9 @@ bool AudioEngine::openStream(uint32_t sampleRate) {
             return false;
         }
     }
+
+    int32_t hwRate = mStream->getSampleRate();
+    mHardwareSampleRate.store(hwRate > 0 ? static_cast<uint32_t>(hwRate) : 48000, std::memory_order_relaxed);
 
     // Set buffer size to burst size (2 bursts is standard for glitch-free low latency)
     int32_t burst = mStream->getFramesPerBurst();
@@ -119,8 +124,8 @@ bool AudioEngine::openStream(uint32_t sampleRate) {
     }
 
     mStreamOpen.store(true);
-    LOGI("Audio stream started successfully at %u Hz, burst=%d, buffer=%d frames",
-         sampleRate, burst, mStream->getBufferSizeInFrames());
+    LOGI("Audio stream started successfully: hwRate=%u Hz, burst=%d, buffer=%d frames",
+         mHardwareSampleRate.load(), burst, mStream->getBufferSizeInFrames());
     return true;
 }
 
@@ -142,13 +147,15 @@ void AudioEngine::closeStreamLocked() {
 
 oboe::DataCallbackResult AudioEngine::onAudioReady(oboe::AudioStream* /*oboeStream*/, void* audioData, int32_t numFrames) {
     float* dst = static_cast<float*>(audioData);
-    mResampler.render(mJitter, dst, numFrames, mSampleRate.load(std::memory_order_relaxed));
+    uint32_t inRate = mSampleRate.load(std::memory_order_relaxed);
+    uint32_t outRate = mHardwareSampleRate.load(std::memory_order_relaxed);
+    mResampler.render(mJitter, dst, static_cast<size_t>(numFrames), inRate, outRate);
     return oboe::DataCallbackResult::Continue;
 }
 
 void AudioEngine::onErrorAfterClose(oboe::AudioStream* /*oboeStream*/, oboe::Result error) {
     LOGI("AudioStream onErrorAfterClose: %s. Reopening...", oboe::convertToText(error));
-    openStream(mSampleRate.load());
+    openStream();
 }
 
 } // namespace audiobridge

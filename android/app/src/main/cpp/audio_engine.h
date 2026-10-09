@@ -27,7 +27,7 @@ public:
     void onErrorAfterClose(oboe::AudioStream* oboeStream, oboe::Result error) override;
 
 private:
-    bool openStream(uint32_t sampleRate);
+    bool openStream();
     void closeStream();
     void closeStreamLocked();
 
@@ -37,7 +37,8 @@ private:
     std::unique_ptr<Receiver> mReceiver;
 
     std::shared_ptr<oboe::AudioStream> mStream;
-    std::atomic<uint32_t> mSampleRate{48000};
+    std::atomic<uint32_t> mSampleRate{44100};
+    std::atomic<uint32_t> mHardwareSampleRate{48000};
     std::atomic<bool> mStreamOpen{false};
     std::atomic<float> mTargetMs{15.0f};
 

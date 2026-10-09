@@ -82,6 +82,7 @@ JNIEXPORT jboolean JNICALL
 Java_com_audiobridge_NativeEngine_nativeSelfTest(JNIEnv* /*env*/, jobject /*thiz*/) {
     // Basic verification test of jitter buffer and resampler
     audiobridge::JitterBuffer jb;
+    jb.setTargetMs(5.0f);
     std::vector<int16_t> pcm(480, 1000); // 240 stereo frames
     jb.pushPacket(0, pcm.data(), 240, 48000);
 

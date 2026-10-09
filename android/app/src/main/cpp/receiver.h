@@ -69,7 +69,7 @@ private:
     std::atomic<float> mAvgJitterMs{0.0f};
     std::atomic<uint32_t> mPacketsReceived{0};
     std::atomic<uint32_t> mPacketsLost{0};
-    std::atomic<uint32_t> mSampleRate{48000};
+    std::atomic<uint32_t> mSampleRate{44100};
     std::atomic<uint8_t> mChannels{2};
 
     uint32_t mLastSeq{0};
