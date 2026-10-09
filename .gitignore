@@ -1,0 +1,27 @@
+# Build & Publish
+[Bb]in/
+[Oo]bj/
+publish/
+release/
+*.user
+*.suo
+.vs/
+
+# Android / Gradle
+.gradle/
+build/
+app/build/
+.cxx/
+local.properties
+*.keystore
+*.jks
+
+# IDEs
+.idea/
+*.iml
+*.swp
+*~
+.DS_Store
+
+# Temporary & Drivers downloaded
+drivers/vbcable/*.zip

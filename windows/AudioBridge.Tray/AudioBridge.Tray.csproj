@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>AudioBridge.Tray</RootNamespace>
+    <AssemblyName>WirelessBark</AssemblyName>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+    <ApplicationIcon>Resources\AudioBridge.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\AudioBridge.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AudioBridge.Core\AudioBridge.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Bundle adb (USB mode) from the local Android SDK if present. -->
+  <PropertyGroup>
+    <AdbDir>$(LOCALAPPDATA)\Android\Sdk\platform-tools</AdbDir>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(AdbDir)\adb.exe')">
+    <None Include="$(AdbDir)\adb.exe;$(AdbDir)\AdbWinApi.dll;$(AdbDir)\AdbWinUsbApi.dll"
+          Link="adb\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+</Project>

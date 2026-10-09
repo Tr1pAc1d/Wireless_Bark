@@ -1,0 +1,53 @@
+================================================================================
+                    TAB inc. - TERMS OF SERVICE & USER PLEDGE
+                             Product: Wireless Bark
+================================================================================
+
+Welcome to Wireless Bark, developed and published by TAB inc.
+
+By installing and using Wireless Bark, you agree to the following terms and our 
+uncompromising commitment to user privacy and software integrity:
+
+1. ZERO TELEMETRY & ZERO DATA COLLECTION
+   - Wireless Bark does NOT track you.
+   - There are zero analytics libraries, tracking beacons, advertising SDKs, 
+     crash-upload daemons, or telemetry hooks embedded in either the PC 
+     software or the Android application.
+   - No audio, system metadata, device identifiers, or usage patterns are ever 
+     uploaded, recorded, or transmitted to any external server.
+
+2. 100% LOCAL & OFFLINE ARCHITECTURE
+   - Wireless Bark operates strictly on your local network (LAN) over Wi-Fi 
+     or wired USB tunnel.
+   - Audio capture, transmission, and playback occur in volatile memory in 
+     real time. No captured audio is ever saved to disk.
+   - The software requires no internet access to function and operates fully 
+     offline.
+
+3. NO ACCOUNTS, NO PAYMENTS, NO BLOAT
+   - No registration, account creation, email sign-ups, or passwords.
+   - No microtransactions, subscriptions, paywalls, or feature tier gates.
+   - No bundled adware, search hijackers, background update miners, or bloatware.
+
+4. USER CONTROL & HARDWARE RESPECT
+   - You retain full control over your audio devices and network streams.
+   - The bundled VB-CABLE virtual driver and USB tunnels exist solely to provide 
+     ultra-low latency audio transport and automatic PC speaker silencing.
+   - Wireless Bark restores your physical audio configuration automatically 
+     upon disconnection or program exit.
+
+5. SISTER SOFTWARE: FETCH BY TAB INC.
+   - If you enjoy lightweight, tracker-free tools, check out our companion project:
+     Fetch - turn your Android phone or Steam Deck into a zero-latency wireless 
+     touchpad, keyboard, and gamepad for your PC!
+     Available at: https://github.com/Tr1pAc1d/Fetch
+
+6. DISCLAIMER OF WARRANTY
+   - Wireless Bark is provided "as is", without warranty of any kind, express 
+     or implied. In no event shall TAB inc. or its contributors be liable for 
+     any claim, damages, or other liability arising from the use of the software.
+
+================================================================================
+Copyright (c) 2026 TAB inc. All Rights Reserved.
+Straightforward, bloat-free software for users.
+================================================================================
