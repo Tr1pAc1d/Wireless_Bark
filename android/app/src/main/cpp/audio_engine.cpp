@@ -26,7 +26,10 @@ bool AudioEngine::start(const std::string& host, int port, NetworkMode mode, con
     mJitter.reset();
     mResampler.reset();
 
-    // Start receiver first
+    // Open default 48kHz stream first
+    openStream(48000);
+
+    // Start receiver
     mReceiver->start(mHost, mPort, mMode, mDeviceName, [this](uint32_t sampleRate, uint8_t /*channels*/, uint16_t /*fpp*/) {
         LOGI("Received FORMAT callback from PC: rate=%u", sampleRate);
         if (mSampleRate.load() != sampleRate || !mStreamOpen.load()) {
@@ -34,8 +37,6 @@ bool AudioEngine::start(const std::string& host, int port, NetworkMode mode, con
         }
     });
 
-    // Also open default 48kHz stream right away
-    openStream(48000);
     return true;
 }
 
@@ -55,12 +56,15 @@ ReceiverStats AudioEngine::getStats() {
     if (mReceiver) {
         st = mReceiver->getStats();
     }
-    if (mStream) {
-        auto result = mStream->calculateLatencyMillis();
-        if (result) {
-            float lat = static_cast<float>(result.value());
-            st.outputLatencyMs = lat;
-            if (mReceiver) mReceiver->setOutputLatencyMs(lat);
+    {
+        std::unique_lock<std::mutex> lock(mStreamMutex, std::try_to_lock);
+        if (lock.owns_lock() && mStream && mStreamOpen.load()) {
+            auto result = mStream->calculateLatencyMillis();
+            if (result) {
+                float lat = static_cast<float>(result.value());
+                st.outputLatencyMs = lat;
+                if (mReceiver) mReceiver->setOutputLatencyMs(lat);
+            }
         }
     }
     st.driftPpm = mResampler.getDriftPpm();
@@ -69,7 +73,14 @@ ReceiverStats AudioEngine::getStats() {
 }
 
 bool AudioEngine::openStream(uint32_t sampleRate) {
-    closeStream();
+    std::lock_guard<std::mutex> lock(mStreamMutex);
+
+    if (mStream && mStreamOpen.load() && mSampleRate.load() == sampleRate) {
+        LOGI("Audio stream already open at %u Hz, skipping reopen", sampleRate);
+        return true;
+    }
+
+    closeStreamLocked();
 
     mSampleRate.store(sampleRate);
     oboe::AudioStreamBuilder builder;
@@ -114,10 +125,17 @@ bool AudioEngine::openStream(uint32_t sampleRate) {
 }
 
 void AudioEngine::closeStream() {
+    std::lock_guard<std::mutex> lock(mStreamMutex);
+    closeStreamLocked();
+}
+
+void AudioEngine::closeStreamLocked() {
     mStreamOpen.store(false);
     if (mStream) {
-        mStream->stop();
-        mStream->close();
+        try {
+            mStream->stop();
+            mStream->close();
+        } catch (...) {}
         mStream.reset();
     }
 }

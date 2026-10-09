@@ -151,15 +151,16 @@ void Receiver::udpLoop() {
             mHasSeq = true;
 
             size_t pcmBytes = n - WIRE_HEADER_SIZE;
-            size_t frames = pcmBytes / (mChannels.load(std::memory_order_relaxed) * sizeof(int16_t));
+            uint8_t ch = std::max<uint8_t>(1, mChannels.load(std::memory_order_relaxed));
+            size_t frames = pcmBytes / (ch * sizeof(int16_t));
             const int16_t* pcm = reinterpret_cast<const int16_t*>(rxBuf + WIRE_HEADER_SIZE);
             mJitter.pushPacket(inHdr->value, pcm, frames, mSampleRate.load(std::memory_order_relaxed));
         } else if (inHdr->type == MessageType::Format) {
             if (n >= static_cast<ssize_t>(WIRE_HEADER_SIZE + sizeof(FormatPayload))) {
                 const FormatPayload* fmt = reinterpret_cast<const FormatPayload*>(rxBuf + WIRE_HEADER_SIZE);
-                mSampleRate.store(fmt->sampleRate, std::memory_order_relaxed);
-                mChannels.store(fmt->channels, std::memory_order_relaxed);
-                if (mOnFormat) mOnFormat(fmt->sampleRate, fmt->channels, fmt->framesPerPacket);
+                if (fmt->sampleRate > 0) mSampleRate.store(fmt->sampleRate, std::memory_order_relaxed);
+                if (fmt->channels > 0) mChannels.store(fmt->channels, std::memory_order_relaxed);
+                if (mOnFormat && fmt->sampleRate > 0) mOnFormat(fmt->sampleRate, fmt->channels, fmt->framesPerPacket);
             }
         } else if (inHdr->type == MessageType::Ping) {
             Header pongHdr = *inHdr;
@@ -235,14 +236,17 @@ void Receiver::tcpLoop() {
         if (inHdr->type == MessageType::Audio) {
             mPacketsReceived.fetch_add(1, std::memory_order_relaxed);
             size_t pcmBytes = msgLen - WIRE_HEADER_SIZE;
-            size_t frames = pcmBytes / (mChannels.load(std::memory_order_relaxed) * sizeof(int16_t));
+            uint8_t ch = std::max<uint8_t>(1, mChannels.load(std::memory_order_relaxed));
+            size_t frames = pcmBytes / (ch * sizeof(int16_t));
             const int16_t* pcm = reinterpret_cast<const int16_t*>(rxBuf + WIRE_HEADER_SIZE);
             mJitter.pushPacket(inHdr->value, pcm, frames, mSampleRate.load(std::memory_order_relaxed));
         } else if (inHdr->type == MessageType::Format) {
-            const FormatPayload* fmt = reinterpret_cast<const FormatPayload*>(rxBuf + WIRE_HEADER_SIZE);
-            mSampleRate.store(fmt->sampleRate, std::memory_order_relaxed);
-            mChannels.store(fmt->channels, std::memory_order_relaxed);
-            if (mOnFormat) mOnFormat(fmt->sampleRate, fmt->channels, fmt->framesPerPacket);
+            if (msgLen >= WIRE_HEADER_SIZE + sizeof(FormatPayload)) {
+                const FormatPayload* fmt = reinterpret_cast<const FormatPayload*>(rxBuf + WIRE_HEADER_SIZE);
+                if (fmt->sampleRate > 0) mSampleRate.store(fmt->sampleRate, std::memory_order_relaxed);
+                if (fmt->channels > 0) mChannels.store(fmt->channels, std::memory_order_relaxed);
+                if (mOnFormat && fmt->sampleRate > 0) mOnFormat(fmt->sampleRate, fmt->channels, fmt->framesPerPacket);
+            }
         } else if (inHdr->type == MessageType::Ping) {
             uint8_t pongBuf[WIRE_HEADER_SIZE + 2];
             *reinterpret_cast<uint16_t*>(pongBuf) = WIRE_HEADER_SIZE;

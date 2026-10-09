@@ -54,17 +54,32 @@ class StreamService : Service() {
     }
 
     fun startStreaming(host: String, port: Int, isUsb: Boolean, targetMs: Float): Boolean {
+        try {
+            val intent = Intent(this, StreamService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("StreamService", "Could not startForegroundService: ${e.message}")
+        }
+
         acquireLocks(isUsb)
         val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
         val ok = NativeEngine.start(host, port, isUsb, deviceName, targetMs)
         if (ok) {
             _isStreaming.value = true
             _connectedHost.value = host
-            val notif = buildNotification(if (isUsb) "Streaming over USB" else "Streaming over Wi-Fi ($host)")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(NOTIFICATION_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
-            } else {
-                startForeground(NOTIFICATION_ID, notif)
+            try {
+                val notif = buildNotification(if (isUsb) "Streaming over USB" else "Streaming over Wi-Fi ($host)")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    startForeground(NOTIFICATION_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+                } else {
+                    startForeground(NOTIFICATION_ID, notif)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("StreamService", "startForeground failed: ${e.message}")
             }
             startStatsPolling()
         } else {
@@ -79,7 +94,9 @@ class StreamService : Service() {
         releaseLocks()
         _isStreaming.value = false
         _connectedHost.value = null
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        try {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } catch (_: Exception) {}
         stopSelf()
     }
 
@@ -98,23 +115,31 @@ class StreamService : Service() {
     }
 
     private fun acquireLocks(isUsb: Boolean) {
-        val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager
-        wakeLock = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AudioBridge:WakeLock")?.apply {
-            acquire(12 * 60 * 60 * 1000L) // 12 hours max
+        try {
+            val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager
+            wakeLock = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AudioBridge:WakeLock")?.apply {
+                acquire(12 * 60 * 60 * 1000L) // 12 hours max
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("StreamService", "Failed to acquire wake lock: ${e.message}")
         }
 
         if (!isUsb) {
-            val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-            if (wm != null) {
-                wifiLock = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    wm.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "AudioBridge:LowLatencyWifi")
-                } else {
-                    @Suppress("DEPRECATION")
-                    wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "AudioBridge:HighPerfWifi")
-                }.apply {
-                    setReferenceCounted(false)
-                    acquire()
+            try {
+                val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+                if (wm != null) {
+                    wifiLock = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        wm.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "AudioBridge:LowLatencyWifi")
+                    } else {
+                        @Suppress("DEPRECATION")
+                        wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "AudioBridge:HighPerfWifi")
+                    }.apply {
+                        setReferenceCounted(false)
+                        acquire()
+                    }
                 }
+            } catch (e: Exception) {
+                android.util.Log.w("StreamService", "Failed to acquire wifi lock: ${e.message}")
             }
         }
     }
@@ -155,7 +180,7 @@ class StreamService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Wireless Bark Active")
             .setContentText(status)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentIntent(pi)
             .setOngoing(true)
             .build()

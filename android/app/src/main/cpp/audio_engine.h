@@ -29,7 +29,9 @@ public:
 private:
     bool openStream(uint32_t sampleRate);
     void closeStream();
+    void closeStreamLocked();
 
+    std::mutex mStreamMutex;
     JitterBuffer mJitter;
     DriftResampler mResampler;
     std::unique_ptr<Receiver> mReceiver;
