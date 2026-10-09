@@ -1,8 +1,18 @@
-# AudioBridge
+# Wireless Bark 🐕
 
-Ultra-low-latency, zero-loss audio streaming from Windows PC to Android over **Wi-Fi (UDP)** or **USB (ADB reverse tunnel)** with automated PC speaker silencing.
+**Wireless Bark** is an ultra-low-latency, zero-loss audio streaming suite from Windows PC to Android over **Wi-Fi (UDP)** or **USB (ADB reverse tunnel)** with automated PC speaker silencing.
+
+Crafted by **TAB inc.** ([@Tr1pAc1d](https://github.com/Tr1pAc1d)) — straightforward, honest software. **No ads, no trackers, no telemetry, no accounts, no subscriptions, no bloat.** 100% local operation.
+
+> Check out our sister project: [Fetch](https://github.com/Tr1pAc1d/Fetch) — fast and privacy-focused!
 
 ---
+
+## 📦 Ready-to-Use Downloads
+
+Pre-built binaries are ready in `release/`:
+- **Windows:** [`WirelessBark-Setup.exe`](release/WirelessBark-Setup.exe) — Traditional Windows wizard installer bundling the app and silent VB-CABLE driver installation.
+- **Android:** [`WirelessBark.apk`](release/WirelessBark.apk) — Install directly on your phone or use `release\install-to-phone.bat` for one-click ADB installation.
 
 ## Features
 
@@ -43,24 +53,24 @@ Ultra-low-latency, zero-loss audio streaming from Windows PC to Android over **W
 cd windows
 dotnet build AudioBridge.sln -c Release
 ```
-The compiled tray executable will be at `windows\AudioBridge.Tray\bin\Release\net8.0-windows\AudioBridge.exe`.
+The compiled tray executable will be at `windows\AudioBridge.Tray\bin\Release\net8.0-windows\WirelessBark.exe`.
 
 ### Android App
 ```powershell
 cd android
-.\gradlew assembleDebug
+.\gradlew assembleRelease
 ```
-The compiled APK will be at `android\app\build\outputs\apk\debug\app-debug.apk`.
+The compiled APK will be at `android\app\build\outputs\apk\release\app-release-unsigned.apk` (or packaged at `release\WirelessBark.apk`).
 
 ---
 
 ## How to Run
 
 1. **Start PC Tray App:**
-   - Run `AudioBridge.exe`. An icon will appear in your system tray and the status window will open.
+   - Run `WirelessBark.exe` or install via `WirelessBark-Setup.exe`. An icon will appear in your system tray and the status window will open.
    - It will begin capturing your default audio device and listening for Android connections.
 2. **Wi-Fi Mode:**
-   - Open AudioBridge on Android.
+   - Open Wireless Bark on Android.
    - Your PC will appear in the list under "Discovered PCs on Wi-Fi". Tap **Connect**.
 3. **USB Mode (Lowest Latency):**
    - Connect your phone to the PC with a USB cable.
